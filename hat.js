@@ -103,11 +103,8 @@ function matchTwo( p1, q1, p2, q2 )
 function intersect( p1, q1, p2, q2 )
 {
     const d = (q2.y - p2.y) * (q1.x - p1.x) - (q2.x - p2.x) * (q1.y - p1.y);
-
-    const uA = 
-		((q2.x - p2.x) * (p1.y - p2.y) - (q2.y - p2.y) * (p1.x - p2.x)) / d;
-	const uB =
-		((q1.x - p1.x) * (p1.y - p2.y) - (q1.y - p1.y) * (p1.x - p2.x)) / d;
+    const uA = ((q2.x - p2.x) * (p1.y - p2.y) - (q2.y - p2.y) * (p1.x - p2.x)) / d;
+    const uB = ((q1.x - p1.x) * (p1.y - p2.y) - (q1.y - p1.y) * (p1.x - p2.x)) / d;
 
     return pt( p1.x + uA * (q1.x - p1.x), p1.y + uA * (q1.y - p1.y) );
 }
@@ -234,7 +231,6 @@ class Geom
 					st = [st[0], st[0], st[0]];
 				}
 
-				 // str = ` vector-effect="non-scaling-stroke" stroke="rgb(${st[0]},${st[1]},${st[2]})" stroke-width="${this.width*lw_scale}"`;
 				 str = ` stroke="rgb(${st[0]},${st[1]},${st[2]})" stroke-width="${this.width*lw_scale/sc}"`;
 			}
 
@@ -267,7 +263,6 @@ class Geom
 					st = [st[0], st[0], st[0]];
 				}
 
-				 // str = ` vector-effect="non-scaling-stroke" stroke="rgb(${st[0]},${st[1]},${st[2]})" stroke-width="${this.width*lw_scale}"`;
 				 str = ` stroke="rgb(${st[0]},${st[1]},${st[2]})" stroke-width="${this.width*lw_scale/sc}"`;
 			}
 
@@ -294,8 +289,6 @@ const H_hat = new Geom( hat_outline, [148, 205, 235], [0, 0, 0] );
 const T_hat = new Geom( hat_outline, [251, 251, 251], [0, 0, 0] );
 const P_hat = new Geom( hat_outline, [250, 250, 250], [0, 0, 0] );
 const F_hat = new Geom( hat_outline, [191, 191, 191], [0, 0, 0] );
-
-// TODO: fill these with hats!
 
 const H_init = (function () {
 	const H_outline = [
@@ -638,13 +631,6 @@ function draw()
 	push();
 	translate( width/2, height/2 );
 	const idx = {'H':0, 'T':1, 'P':2, 'F':3}[radio.value()];
-
-/*
-	let patch = constructPatch( H_init, T_init, P_init, F_init );
-	patch.draw( to_screen, 2 );
-	patch.draw( to_screen, 1 );
-	patch.draw( to_screen, 0 );
-	*/
 
 	if( isButtonActive( draw_hats ) ) {
 		tiles[idx].draw( to_screen, level );
