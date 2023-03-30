@@ -268,7 +268,7 @@ class Geom
 
 			let fil = ' fill="none"';
 			if( this.fill != null ) {
-				fil = ` fill="rgb(${this.fill[0]} ${this.fill[1]} ${this.fill[2]})"`;
+				fil = ` fill="rgb(${this.fill[0]},${this.fill[1]},${this.fill[2]})"`;
 			}
 
 			stream.push( `    <polygon points="${verts}"${str}${fil}/>` );
