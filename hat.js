@@ -20,6 +20,7 @@ let draw_super;
 let radio;
 let dragging = false;
 let uibox = true;
+let box_height = 10;
 
 let svg_serial = 0;
 
@@ -513,7 +514,7 @@ function setup() {
 	level = 1;
 
 	reset_button = createButton( "Reset" );
-	reset_button.position( 10, 10 );
+	reset_button.position( 10, box_height );
 	reset_button.size( 125, 25 );
 	reset_button.mousePressed( function() {
 		tiles = [H_init, T_init, P_init, F_init];
@@ -525,9 +526,10 @@ function setup() {
 		setButtonActive( draw_super, true );
 		loop();
 	} );
+	box_height += 30;
 
 	subst_button = createButton( "Build Supertiles" );
-	subst_button.position( 10, 40 );
+	subst_button.position( 10, box_height );
 	subst_button.size( 125, 25 );
 	subst_button.mousePressed( function() {
 		const patch = constructPatch( ...tiles );
@@ -535,34 +537,38 @@ function setup() {
 		++level;
 		loop();
 	} );
+	box_height += 40;
 
 	radio = createRadio();
 	radio.mousePressed( function() { loop() } );
-	radio.position( 10, 80 );
+	radio.position( 10, box_height );
 	for( let s of ['H', 'T', 'P', 'F'] ) {
 		let o = radio.option( s );
 		o.onclick = loop;
 	}
 	radio.selected( 'H' );
+	box_height += 40;
 
 	translate_button = createButton( "Translate" );
 	setButtonActive( translate_button, true );
-	translate_button.position( 10, 120 );
+	translate_button.position( 10, box_height );
 	translate_button.size( 125, 25 );
 	translate_button.mousePressed( function() {
 		setButtonActive( translate_button, true );
 		setButtonActive( scale_button, false );
 		loop();
 	} );
+	box_height += 30;
 
 	scale_button = createButton( "Scale" );
-	scale_button.position( 10, 150 );
+	scale_button.position( 10, box_height );
 	scale_button.size( 125, 25 );
 	scale_button.mousePressed( function() {
 		setButtonActive( translate_button, false );
 		setButtonActive( scale_button, true );
 		loop();
 	} );
+	box_height += 30;
 	
 	draw_hats = createButton( "Draw Hats" );
 	setButtonActive( draw_hats, true );
@@ -570,8 +576,9 @@ function setup() {
 		setButtonActive( draw_hats, !isButtonActive( draw_hats ) );
 		loop();
 	} );
-	draw_hats.position( 10, 180 );
+	draw_hats.position( 10, box_height );
 	draw_hats.size( 125, 25 );
+	box_height += 30;
 
 	draw_super = createButton( "Draw Supertiles" );
 	setButtonActive( draw_super, true );
@@ -579,11 +586,12 @@ function setup() {
 		setButtonActive( draw_super, !isButtonActive( draw_super ) );
 		loop();
 	} );
-	draw_super.position( 10, 210 );
+	draw_super.position( 10, box_height );
 	draw_super.size( 125, 25 );
+	box_height += 40;
 
 	let save_button = createButton( "Save PNG" );
-	save_button.position( 10, 250 );
+	save_button.position( 10, box_height );
 	save_button.size( 125, 25 );
 	save_button.mousePressed( function () {
 		uibox = false;
@@ -592,9 +600,10 @@ function setup() {
 		uibox = true;
 		draw();
 	} );
+	box_height += 30;
 
 	let svg_button = createButton( "Save SVG" );
-	svg_button.position( 10, 280 );
+	svg_button.position( 10, box_height );
 	svg_button.size( 125, 25 );
 	svg_button.mousePressed( function () {
 		svg_serial = 0;
@@ -622,6 +631,8 @@ function setup() {
 
 		saveStrings( stream, 'output', 'svg' );
 	} );
+	box_height += 30;
+	box_height -= 5; // remove half the padding
 }
 
 function draw()
@@ -647,7 +658,7 @@ function draw()
 		stroke( 0 );
 		strokeWeight( 0.5 );
 		fill( 255, 220 );
-		rect( 5, 5, 135, 305 );
+		rect( 5, 5, 135, box_height);
 	}
 	noLoop();
 }
