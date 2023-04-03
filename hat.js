@@ -18,10 +18,52 @@ let scale_button;
 let draw_hats;
 let draw_super;
 let radio;
+let cp_h1;
+let cp_h;
+let cp_t;
+let cp_p;
+let cp_f;
 let dragging = false;
 let uibox = true;
+let box_height = 10;
+
+let H1_hat;
+let H_hat;
+let T_hat;
+let P_hat;
+let F_hat;
 
 let svg_serial = 0;
+let h1_color = [0, 137, 212];
+let h_color = [148, 205, 235];
+let t_color = [251, 251, 251];
+let p_color = [250, 250, 250];
+let f_color = [191, 191, 191];
+
+function color2rgb(c)
+{
+	return [c.levels[0], c.levels[1], c.levels[2]];
+}
+function set_h1_color()
+{
+	H1_hat.fill = color2rgb(cp_h1.color());
+}
+function set_h_color()
+{
+	H_hat.fill = color2rgb(cp_h.color());
+}
+function set_t_color()
+{
+	T_hat.fill = color2rgb(cp_t.color());
+}
+function set_p_color()
+{
+	P_hat.fill = color2rgb(cp_p.color());
+}
+function set_f_color()
+{
+	F_hat.fill = color2rgb(cp_f.color());
+}
 
 function pt( x, y )
 {
@@ -284,11 +326,11 @@ const hat_outline = [
     hexPt(3, 0), hexPt(2, 2), hexPt(0, 3), hexPt(0, 2),
     hexPt(-1, 2) ];
 
-const H1_hat = new Geom( hat_outline, [0, 137, 212], [0, 0, 0] );
-const H_hat = new Geom( hat_outline, [148, 205, 235], [0, 0, 0] );
-const T_hat = new Geom( hat_outline, [251, 251, 251], [0, 0, 0] );
-const P_hat = new Geom( hat_outline, [250, 250, 250], [0, 0, 0] );
-const F_hat = new Geom( hat_outline, [191, 191, 191], [0, 0, 0] );
+H1_hat = new Geom( hat_outline, h1_color, [0, 0, 0] );
+H_hat = new Geom( hat_outline, h_color, [0, 0, 0] );
+T_hat = new Geom( hat_outline, t_color, [0, 0, 0] );
+P_hat = new Geom( hat_outline, p_color, [0, 0, 0] );
+F_hat = new Geom( hat_outline, f_color, [0, 0, 0] );
 
 const H_init = (function () {
 	const H_outline = [
@@ -513,7 +555,7 @@ function setup() {
 	level = 1;
 
 	reset_button = createButton( "Reset" );
-	reset_button.position( 10, 10 );
+	reset_button.position( 10, box_height );
 	reset_button.size( 125, 25 );
 	reset_button.mousePressed( function() {
 		tiles = [H_init, T_init, P_init, F_init];
@@ -525,9 +567,10 @@ function setup() {
 		setButtonActive( draw_super, true );
 		loop();
 	} );
+	box_height += 30;
 
 	subst_button = createButton( "Build Supertiles" );
-	subst_button.position( 10, 40 );
+	subst_button.position( 10, box_height );
 	subst_button.size( 125, 25 );
 	subst_button.mousePressed( function() {
 		const patch = constructPatch( ...tiles );
@@ -535,34 +578,68 @@ function setup() {
 		++level;
 		loop();
 	} );
+	box_height += 40;
 
 	radio = createRadio();
 	radio.mousePressed( function() { loop() } );
-	radio.position( 10, 80 );
+	radio.position( 10, box_height );
 	for( let s of ['H', 'T', 'P', 'F'] ) {
 		let o = radio.option( s );
 		o.onclick = loop;
 	}
 	radio.selected( 'H' );
+	box_height += 40;
+
+	cp_h1 = createColorPicker(h1_color);
+	cp_h1.mousePressed( function() { loop() } );
+	cp_h1.input(set_h1_color);
+	cp_h1.position( 10, box_height );
+	box_height += 40;
+
+	cp_h = createColorPicker(h_color);
+	cp_h.mousePressed( function() { loop() } );
+	cp_h.input(set_h_color);
+	cp_h.position( 10, box_height );
+	box_height += 40;
+
+	cp_t = createColorPicker(t_color);
+	cp_t.mousePressed( function() { loop() } );
+	cp_t.input(set_t_color);
+	cp_t.position( 10, box_height );
+	box_height += 40;
+
+	cp_p = createColorPicker(p_color);
+	cp_p.mousePressed( function() { loop() } );
+	cp_p.input(set_p_color);
+	cp_p.position( 10, box_height );
+	box_height += 40;
+
+	cp_f = createColorPicker(f_color);
+	cp_f.mousePressed( function() { loop() } );
+	cp_f.input(set_f_color);
+	cp_f.position( 10, box_height );
+	box_height += 40;
 
 	translate_button = createButton( "Translate" );
 	setButtonActive( translate_button, true );
-	translate_button.position( 10, 120 );
+	translate_button.position( 10, box_height );
 	translate_button.size( 125, 25 );
 	translate_button.mousePressed( function() {
 		setButtonActive( translate_button, true );
 		setButtonActive( scale_button, false );
 		loop();
 	} );
+	box_height += 30;
 
 	scale_button = createButton( "Scale" );
-	scale_button.position( 10, 150 );
+	scale_button.position( 10, box_height );
 	scale_button.size( 125, 25 );
 	scale_button.mousePressed( function() {
 		setButtonActive( translate_button, false );
 		setButtonActive( scale_button, true );
 		loop();
 	} );
+	box_height += 30;
 	
 	draw_hats = createButton( "Draw Hats" );
 	setButtonActive( draw_hats, true );
@@ -570,8 +647,9 @@ function setup() {
 		setButtonActive( draw_hats, !isButtonActive( draw_hats ) );
 		loop();
 	} );
-	draw_hats.position( 10, 180 );
+	draw_hats.position( 10, box_height );
 	draw_hats.size( 125, 25 );
+	box_height += 30;
 
 	draw_super = createButton( "Draw Supertiles" );
 	setButtonActive( draw_super, true );
@@ -579,11 +657,12 @@ function setup() {
 		setButtonActive( draw_super, !isButtonActive( draw_super ) );
 		loop();
 	} );
-	draw_super.position( 10, 210 );
+	draw_super.position( 10, box_height );
 	draw_super.size( 125, 25 );
+	box_height += 40;
 
 	let save_button = createButton( "Save PNG" );
-	save_button.position( 10, 250 );
+	save_button.position( 10, box_height );
 	save_button.size( 125, 25 );
 	save_button.mousePressed( function () {
 		uibox = false;
@@ -592,9 +671,10 @@ function setup() {
 		uibox = true;
 		draw();
 	} );
+	box_height += 30;
 
 	let svg_button = createButton( "Save SVG" );
-	svg_button.position( 10, 280 );
+	svg_button.position( 10, box_height );
 	svg_button.size( 125, 25 );
 	svg_button.mousePressed( function () {
 		svg_serial = 0;
@@ -622,6 +702,8 @@ function setup() {
 
 		saveStrings( stream, 'output', 'svg' );
 	} );
+	box_height += 30;
+	box_height -= 5; // remove half the padding
 }
 
 function draw()
@@ -647,7 +729,7 @@ function draw()
 		stroke( 0 );
 		strokeWeight( 0.5 );
 		fill( 255, 220 );
-		rect( 5, 5, 135, 305 );
+		rect( 5, 5, 135, box_height);
 	}
 	noLoop();
 }
