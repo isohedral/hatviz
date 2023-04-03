@@ -18,11 +18,52 @@ let scale_button;
 let draw_hats;
 let draw_super;
 let radio;
+let cp_h1;
+let cp_h;
+let cp_t;
+let cp_p;
+let cp_f;
 let dragging = false;
 let uibox = true;
 let box_height = 10;
 
+let H1_hat;
+let H_hat;
+let T_hat;
+let P_hat;
+let F_hat;
+
 let svg_serial = 0;
+let h1_color = [0, 137, 212];
+let h_color = [148, 205, 235];
+let t_color = [251, 251, 251];
+let p_color = [250, 250, 250];
+let f_color = [191, 191, 191];
+
+function color2rgb(c)
+{
+	return [c.levels[0], c.levels[1], c.levels[2]];
+}
+function set_h1_color()
+{
+	H1_hat.fill = color2rgb(cp_h1.color());
+}
+function set_h_color()
+{
+	H_hat.fill = color2rgb(cp_h.color());
+}
+function set_t_color()
+{
+	T_hat.fill = color2rgb(cp_t.color());
+}
+function set_p_color()
+{
+	P_hat.fill = color2rgb(cp_p.color());
+}
+function set_f_color()
+{
+	F_hat.fill = color2rgb(cp_f.color());
+}
 
 function pt( x, y )
 {
@@ -285,11 +326,11 @@ const hat_outline = [
     hexPt(3, 0), hexPt(2, 2), hexPt(0, 3), hexPt(0, 2),
     hexPt(-1, 2) ];
 
-const H1_hat = new Geom( hat_outline, [0, 137, 212], [0, 0, 0] );
-const H_hat = new Geom( hat_outline, [148, 205, 235], [0, 0, 0] );
-const T_hat = new Geom( hat_outline, [251, 251, 251], [0, 0, 0] );
-const P_hat = new Geom( hat_outline, [250, 250, 250], [0, 0, 0] );
-const F_hat = new Geom( hat_outline, [191, 191, 191], [0, 0, 0] );
+H1_hat = new Geom( hat_outline, h1_color, [0, 0, 0] );
+H_hat = new Geom( hat_outline, h_color, [0, 0, 0] );
+T_hat = new Geom( hat_outline, t_color, [0, 0, 0] );
+P_hat = new Geom( hat_outline, p_color, [0, 0, 0] );
+F_hat = new Geom( hat_outline, f_color, [0, 0, 0] );
 
 const H_init = (function () {
 	const H_outline = [
@@ -547,6 +588,36 @@ function setup() {
 		o.onclick = loop;
 	}
 	radio.selected( 'H' );
+	box_height += 40;
+
+	cp_h1 = createColorPicker(h1_color);
+	cp_h1.mousePressed( function() { loop() } );
+	cp_h1.input(set_h1_color);
+	cp_h1.position( 10, box_height );
+	box_height += 40;
+
+	cp_h = createColorPicker(h_color);
+	cp_h.mousePressed( function() { loop() } );
+	cp_h.input(set_h_color);
+	cp_h.position( 10, box_height );
+	box_height += 40;
+
+	cp_t = createColorPicker(t_color);
+	cp_t.mousePressed( function() { loop() } );
+	cp_t.input(set_t_color);
+	cp_t.position( 10, box_height );
+	box_height += 40;
+
+	cp_p = createColorPicker(p_color);
+	cp_p.mousePressed( function() { loop() } );
+	cp_p.input(set_p_color);
+	cp_p.position( 10, box_height );
+	box_height += 40;
+
+	cp_f = createColorPicker(f_color);
+	cp_f.mousePressed( function() { loop() } );
+	cp_f.input(set_f_color);
+	cp_f.position( 10, box_height );
 	box_height += 40;
 
 	translate_button = createButton( "Translate" );
