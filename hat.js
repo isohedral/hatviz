@@ -590,31 +590,31 @@ function setup() {
 	radio.selected( 'H' );
 	box_height += 40;
 
-	cp_h1 = createColorPicker(h1_color);
+	cp_h1 = createColorPicker( color( ...h1_color ) );
 	cp_h1.mousePressed( function() { loop() } );
 	cp_h1.input(set_h1_color);
 	cp_h1.position( 10, box_height );
 	box_height += 40;
 
-	cp_h = createColorPicker(h_color);
+	cp_h = createColorPicker( color( ...h_color) );
 	cp_h.mousePressed( function() { loop() } );
 	cp_h.input(set_h_color);
 	cp_h.position( 10, box_height );
 	box_height += 40;
 
-	cp_t = createColorPicker(t_color);
+	cp_t = createColorPicker( color( ...t_color ) );
 	cp_t.mousePressed( function() { loop() } );
 	cp_t.input(set_t_color);
 	cp_t.position( 10, box_height );
 	box_height += 40;
 
-	cp_p = createColorPicker(p_color);
+	cp_p = createColorPicker( color( ...p_color) );
 	cp_p.mousePressed( function() { loop() } );
 	cp_p.input(set_p_color);
 	cp_p.position( 10, box_height );
 	box_height += 40;
 
-	cp_f = createColorPicker(f_color);
+	cp_f = createColorPicker( color( ...f_color ) );
 	cp_f.mousePressed( function() { loop() } );
 	cp_f.input(set_f_color);
 	cp_f.position( 10, box_height );
