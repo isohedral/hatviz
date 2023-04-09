@@ -693,6 +693,17 @@ function setup() {
     } );
     draw_super.position( 10, box_height );
     draw_super.size( 125, 25 );
+    box_height += 30;
+
+    // Add a new button for drawing the grid
+    draw_grid = createButton('Draw Grid');
+    setButtonActive( draw_grid, true );
+    draw_grid.mousePressed(() => {
+	setButtonActive( draw_grid, !isButtonActive( draw_grid ) );
+	loop();
+    } );
+    draw_grid.position(10, box_height);
+    draw_grid.size( 125, 25 );
     box_height += 40;
 
     let save_button = createButton( "Save PNG" );
@@ -757,6 +768,37 @@ function draw()
 	    tiles[idx].draw( to_screen, lev );
 	}
     }
+
+    if (isButtonActive( draw_grid )) {
+        // Add functionality to draw a 100 by 100 grid using the hexPt method
+	stroke(0);
+	strokeWeight(1);
+	const gridSize = 10;
+	const cellSize = 5;
+
+	for (let x = 0; x <= gridSize; x++) {
+	    for (let y = 0; y <= gridSize; y++) {
+		const pt1 = hexPt(x * cellSize, y * cellSize);
+		const pt2 = hexPt((x + 1) * cellSize, y * cellSize);
+		const pt3 = hexPt(x * cellSize, (y + 1) * cellSize);
+
+		// Apply the transformations to the grid points
+		const transformedPt1 = transPt(to_screen, pt1);
+		const transformedPt2 = transPt(to_screen, pt2);
+		const transformedPt3 = transPt(to_screen, pt3);
+
+		// Draw horizontal lines
+		if (x < gridSize) {
+                    line(transformedPt1.x, transformedPt1.y, transformedPt2.x, transformedPt2.y);
+		}
+		// Draw vertical lines
+		if (y < gridSize) {
+                    line(transformedPt1.x, transformedPt1.y, transformedPt3.x, transformedPt3.y);
+		}
+	    }
+	}
+    }
+    
     pop();
 
     if( uibox ) {
