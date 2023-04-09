@@ -1,6 +1,5 @@
 // Constants for hexagonal points calculations
-const r3 = 1.7320508075688772;
-const hr3 = 0.8660254037844386;
+const hr3 = 0.8660254037844386467637; // Sqrt(3)/2
 const ident = [1, 0, 0, 0, 1, 0];
 
 // Variables for managing the transformations and drawing
@@ -195,7 +194,7 @@ class Geom
 	return transPt( this.children[n].T, this.children[n].geom.shape[i] );
     }
 
-    // Draws the polygon and its children at the given level.
+    // Draws the polygon and its children at the given level using a given transformation matrix (S).
     draw( S, level )
     {
 	if( level > 0 ) {
