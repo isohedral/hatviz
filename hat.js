@@ -1,16 +1,20 @@
+// Constants for hexagonal points calculations
 const r3 = 1.7320508075688772;
 const hr3 = 0.8660254037844386;
-const ident = [1,0,0,0,1,0];
+const ident = [1, 0, 0, 0, 1, 0];
 
+// Variables for managing the transformations and drawing
 let to_screen = [20, 0, 0, 0, -20, 0];
 let lw_scale = 1;
 let tiles;
 let level;
 
+// Variables for scaling
 let scale_centre;
 let scale_start;
 let scale_ts;
 
+// UI elements
 let reset_button;
 let subst_button;
 let translate_button;
@@ -27,6 +31,7 @@ let dragging = false;
 let uibox = true;
 let box_height = 10;
 
+// Geometric shapes representing the tiles
 let H1_hat;
 let H_hat;
 let T_hat;
@@ -34,114 +39,106 @@ let P_hat;
 let F_hat;
 
 let svg_serial = 0;
+// Initial colors for the tiles
 let h1_color = [0, 137, 212];
 let h_color = [148, 205, 235];
 let t_color = [251, 251, 251];
 let p_color = [250, 250, 250];
 let f_color = [191, 191, 191];
 
-function color2rgb(c)
-{
+// Helper functions for color management
+function color2rgb(c) {
 	return [c.levels[0], c.levels[1], c.levels[2]];
 }
-function set_h1_color()
-{
+function set_h1_color() {
 	H1_hat.fill = color2rgb(cp_h1.color());
 }
-function set_h_color()
-{
+function set_h_color() {
 	H_hat.fill = color2rgb(cp_h.color());
 }
-function set_t_color()
-{
+function set_t_color() {
 	T_hat.fill = color2rgb(cp_t.color());
 }
-function set_p_color()
-{
+function set_p_color() {
 	P_hat.fill = color2rgb(cp_p.color());
 }
-function set_f_color()
-{
+function set_f_color() {
 	F_hat.fill = color2rgb(cp_f.color());
 }
 
-function pt( x, y )
-{
-	return { x : x, y : y };
+// Helper functions for point and transformation management
+function pt(x, y) {
+	return { x: x, y: y };
 }
 
-function hexPt( x, y )
-{
-	return pt( x + 0.5*y, hr3*y );
+function hexPt(x, y) {
+	return pt(x + 0.5 * y, hr3 * y);
 }
 
 // Affine matrix inverse
-function inv( T ) {
-	const det = T[0]*T[4] - T[1]*T[3];
-	return [T[4]/det, -T[1]/det, (T[1]*T[5]-T[2]*T[4])/det,
-		-T[3]/det, T[0]/det, (T[2]*T[3]-T[0]*T[5])/det];
+function inv(T) {
+	const det = T[0] * T[4] - T[1] * T[3];
+	return [
+		T[4] / det, -T[1] / det, (T[1] * T[5] - T[2] * T[4]) / det,
+		-T[3] / det, T[0] / det, (T[2] * T[3] - T[0] * T[5]) / det
+	];
 };
 
 // Affine matrix multiply
-function mul( A, B )
-{
-	return [A[0]*B[0] + A[1]*B[3], 
-		A[0]*B[1] + A[1]*B[4],
-		A[0]*B[2] + A[1]*B[5] + A[2],
+function mul(A, B) {
+	return [
+		A[0] * B[0] + A[1] * B[3],
+		A[0] * B[1] + A[1] * B[4],
+		A[0] * B[2] + A[1] * B[5] + A[2],
 
-		A[3]*B[0] + A[4]*B[3], 
-		A[3]*B[1] + A[4]*B[4],
-		A[3]*B[2] + A[4]*B[5] + A[5]];
+		A[3] * B[0] + A[4] * B[3],
+		A[3] * B[1] + A[4] * B[4],
+		A[3] * B[2] + A[4] * B[5] + A[5]
+	];
 }
 
-function padd( p, q )
-{
-	return { x : p.x + q.x, y : p.y + q.y };
+function padd(p, q) {
+	return { x: p.x + q.x, y: p.y + q.y };
 }
 
-function psub( p, q )
-{
-	return { x : p.x - q.x, y : p.y - q.y };
+function psub(p, q) {
+	return { x: p.x - q.x, y: p.y - q.y };
 }
 
 // Rotation matrix
-function trot( ang )
-{
-	const c = cos( ang );
-	const s = sin( ang );
+function trot(ang) {
+	const c = cos(ang);
+	const s = sin(ang);
 	return [c, -s, 0, s, c, 0];
 }
 
 // Translation matrix
-function ttrans( tx, ty )
-{
+function ttrans(tx, ty) {
 	return [1, 0, tx, 0, 1, ty];
 }
 
-function rotAbout( p, ang )
-{
-	return mul( ttrans( p.x, p.y ), 
-		mul( trot( ang ), ttrans( -p.x, -p.y ) ) );
+function rotAbout(p, ang) {
+	return mul(ttrans(p.x, p.y),
+		mul(trot(ang), ttrans(-p.x, -p.y)));
 }
 
 // Matrix * point
-function transPt( M, P )
-{
-	return pt(M[0]*P.x + M[1]*P.y + M[2], M[3]*P.x + M[4]*P.y + M[5]);
+function transPt(M, P) {
+	return pt(M[0] * P.x + M[1] * P.y + M[2], M[3] * P.x + M[4] * P.y + M[5]);
 }
 
 // Match unit interval to line segment p->q
-function matchSeg( p, q )
-{
-	return [q.x-p.x, p.y-q.y, p.x,  q.y-p.y, q.x-p.x, p.y];
-};
+function matchSeg(p, q) {
+	return [q.x - p.x, p.y - q.y, p.x, q.y - p.y, q.x - p.x, p.y];
+}
 
 // Match line segment p1->q1 to line segment p2->q2
 function matchTwo( p1, q1, p2, q2 )
 {
 	return mul( matchSeg( p2, q2 ), inv( matchSeg( p1, q1 ) ) );
-};
-
+}
+ 
+// This function computes the intersection point of two lines, given two points on each line.
 function intersect( p1, q1, p2, q2 )
 {
     const d = (q2.y - p2.y) * (q1.x - p1.x) - (q2.x - p2.x) * (q1.y - p1.y);
@@ -151,49 +148,54 @@ function intersect( p1, q1, p2, q2 )
     return pt( p1.x + uA * (q1.x - p1.x), p1.y + uA * (q1.y - p1.y) );
 }
 
+// This function draws a polygon with the given shape, transformation matrix (T), fill color (f), stroke color (s), and stroke weight (w).
 function drawPolygon( shape, T, f, s, w )
 {
-	if( f != null ) {
+	if( f != null ) { // Set fill color or disable fill
 		fill( ...f );
 	} else {
 		noFill();
 	}
-	if( s != null ) {
+	if( s != null ) { // Set stroke color, stroke weight or disable stroke
 		stroke( ...s );
 		strokeWeight( w * lw_scale );
 	} else {
 		noStroke();
 	}
-	beginShape();
+	beginShape(); // Start drawing the polygon
 	for( let p of shape ) {
 		const tp = transPt( T, p );
 		vertex( tp.x, tp.y );
 	}
-	endShape( CLOSE );
+	endShape( CLOSE ); // Close the polygon
 }
 
+// Geom class represents polygons and their children, along with their fill and stroke colors.
 class Geom
 {
 	constructor( pgon, fill, stroke ) 
 	{
-		this.shape = pgon;
-		this.fill = fill
-		this.stroke = stroke;
-		this.width = 1.0;
-		this.children = [];
-		this.svg_id = null;
+		this.shape = pgon; // The polygon shape
+		this.fill = fill // The fill color
+		this.stroke = stroke; // The stroke color
+		this.width = 1.0; // The stroke width
+		this.children = []; // The children polygons of this polygon
+		this.svg_id = null; // The SVG ID of this polygon
 	}
 
+	// Adds a child polygon with the given transformation matrix (T) and geometry (geom).
 	addChild( T, geom )
 	{
 		this.children.push( { T : T, geom : geom } );
 	}
 
+	// Evaluates the position of the i-th point of the n-th child polygon.
 	evalChild( n, i )
 	{
 		return transPt( this.children[n].T, this.children[n].geom.shape[i] );
 	}
 
+	// Draws the polygon and its children at the given level.
 	draw( S, level )
 	{
 		if( level > 0 ) {
@@ -205,6 +207,7 @@ class Geom
 		}
 	}
 
+	// Recomputes the center of the polygon and repositions its children accordingly.
 	recentre()
 	{
 		let cx = 0;
@@ -227,6 +230,7 @@ class Geom
 		}
 	}
 
+	// Resets the SVG ID of this polygon and its children.
 	resetSVG()
 	{
 		for( let ch of this.children ) {
@@ -320,25 +324,30 @@ class Geom
 	}
 }
 
+// Define the 'hat' outline as an array of points in the hexagonal grid
 const hat_outline = [
     hexPt(0, 0), hexPt(-1,-1), hexPt(0,-2), hexPt(2,-2),
     hexPt(2,-1), hexPt(4,-2), hexPt(5,-1), hexPt(4, 0),
     hexPt(3, 0), hexPt(2, 2), hexPt(0, 3), hexPt(0, 2),
     hexPt(-1, 2) ];
 
+// Create 'hat' geometry for each tile type (H1, H, T, P, F)
 H1_hat = new Geom( hat_outline, h1_color, [0, 0, 0] );
 H_hat = new Geom( hat_outline, h_color, [0, 0, 0] );
 T_hat = new Geom( hat_outline, t_color, [0, 0, 0] );
 P_hat = new Geom( hat_outline, p_color, [0, 0, 0] );
 F_hat = new Geom( hat_outline, f_color, [0, 0, 0] );
 
+// Define the H supertile
 const H_init = (function () {
+    // Define the initial H supertile outline
 	const H_outline = [
 		pt( 0, 0 ), pt( 4, 0 ), pt( 4.5, hr3 ),
 		pt( 2.5, 5 * hr3 ), pt( 1.5, 5 * hr3 ), pt( -0.5, hr3 ) ];
 	geom = new Geom( H_outline, null, [0,0,0] );
 	geom.width = 2;
 
+    // Add H_hat as children in the H supertile
 	geom.addChild( 
 		matchTwo( 
 			hat_outline[5], hat_outline[7], H_outline[5], H_outline[0] ),
@@ -351,6 +360,8 @@ const H_init = (function () {
 		matchTwo( 
 			hat_outline[5], hat_outline[7], H_outline[3], H_outline[4] ),
 		H_hat );
+
+    // Add H1_hat as a child in the H supertile
 	geom.addChild( 
 		mul( ttrans( 2.5, hr3 ), 
 			mul( 
@@ -360,25 +371,31 @@ const H_init = (function () {
 
 	return geom; }());
 
+// Define the T supertile
 const T_init = (function () {
+        // Define the initial T supertile outline
 	const T_outline = [
 		pt( 0, 0 ), pt( 3, 0 ), pt( 1.5, 3 * hr3 ) ];
 	geom = new Geom( T_outline, null, [0,0,0] );
 	geom.width = 2;
 
+        // Add T_hat as a child in the T supertile
 	geom.addChild( 
 		[0.5, 0, 0.5, 0, 0.5, hr3],
 		T_hat );
 
 	return geom; }());
-
+    
+// Define the P supertile
 const P_init = (function () {
+	// Define the initial P supertile outline
 	const P_outline = [
 		pt( 0, 0 ), pt( 4, 0 ), 
 		pt( 3, 2 * hr3 ), pt( -1, 2 * hr3 ) ];
 	geom = new Geom( P_outline, null, [0,0,0] );
 	geom.width = 2;
 
+        // Add P_hat as children in the P supertile
 	geom.addChild( 
 		[0.5, 0, 1.5, 0, 0.5, hr3],
 		P_hat );
@@ -389,7 +406,7 @@ const P_init = (function () {
 		P_hat );
 
 	return geom; }());
-
+// Define the F supertile
 const F_init = (function () {
 	const F_outline = [
 		pt( 0, 0 ), pt( 3, 0 ), 
@@ -408,8 +425,10 @@ const F_init = (function () {
 
 	return geom; }());
 
+// This function constructs a patch of aperiodic hat tiles using the given H, T, P, and F super-tiles.
 function constructPatch( H, T, P, F )
 {
+	// This list of rules defines how to combine the super-tiles to create the final patch.
 	const rules = [
 		['H'],
 		[0, 0, 'P', 2],
@@ -442,10 +461,14 @@ function constructPatch( H, T, P, F )
 		[4, 0, 'F', 3] 
 		];
 
+	// Create a new empty geometry object with the same width as H.
 	ret = new Geom( [], null, null );
 	ret.width = H.width;
+
+	// Create a dictionary to map the super-tile names to their corresponding objects.
 	shapes = { 'H' : H, 'T' : T, 'P' : P, 'F' : F };
 
+	// Iterate through the rules and construct the patch by combining the super-tiles.
 	for( let r of rules ) {
 		if( r.length == 1 ) {
 			ret.addChild( ident, shapes[r[0]] );
@@ -475,67 +498,79 @@ function constructPatch( H, T, P, F )
 		}
 	}
 
+	// Return the constructed patch.
 	return ret;
 }
 
-function constructMetatiles( patch )
-{
-	const bps1 = patch.evalChild( 8, 2 );
-	const bps2 = patch.evalChild( 21, 2 );
-	const rbps = transPt( rotAbout( bps1, -2.0*PI/3.0 ), bps2 );
+// This function takes a patch object as input and constructs metatiles (H, T, P, F) from it.
+function constructMetatiles(patch) {
+	// Calculate some intermediate points used later in the function.
+	const bps1 = patch.evalChild(8, 2);
+	const bps2 = patch.evalChild(21, 2);
+	const rbps = transPt(rotAbout(bps1, -2.0 * PI / 3.0), bps2);
 
-	const p72 = patch.evalChild( 7, 2 );
-	const p252 = patch.evalChild( 25, 2 );
+	const p72 = patch.evalChild(7, 2);
+	const p252 = patch.evalChild(25, 2);
 
-	const llc = intersect( bps1, rbps,
-		patch.evalChild( 6, 2 ), p72 );
-	let w = psub( patch.evalChild( 6, 2 ), llc );
+	// Calculate the lower left corner (llc) of the H metatile.
+	const llc = intersect(bps1, rbps, patch.evalChild(6, 2), p72);
+	let w = psub(patch.evalChild(6, 2), llc);
 
+	// Define the outline of the H metatile.
 	const new_H_outline = [llc, bps1];
-	w = transPt( trot( -PI/3 ), w );
-	new_H_outline.push( padd( new_H_outline[1], w ) );
-	new_H_outline.push( patch.evalChild( 14, 2 ) );
-	w = transPt( trot( -PI/3 ), w );
-	new_H_outline.push( psub( new_H_outline[3], w ) );
-	new_H_outline.push( patch.evalChild( 6, 2 ) );
+	w = transPt(trot(-PI / 3), w);
+	new_H_outline.push(padd(new_H_outline[1], w));
+	new_H_outline.push(patch.evalChild(14, 2));
+	w = transPt(trot(-PI / 3), w);
+	new_H_outline.push(psub(new_H_outline[3], w));
+	new_H_outline.push(patch.evalChild(6, 2));
 
-	const new_H = new Geom( new_H_outline, null, [0,0,0] );
+	// Create the H metatile object.
+	const new_H = new Geom(new_H_outline, null, [0, 0, 0]);
 	new_H.width = patch.width * 2;
-	for( let ch of [0, 9, 16, 27, 26, 6, 1, 8, 10, 15] ) {
-		new_H.addChild( patch.children[ch].T, patch.children[ch].geom );
+	for (let ch of [0, 9, 16, 27, 26, 6, 1, 8, 10, 15]) {
+	    new_H.addChild(patch.children[ch].T, patch.children[ch].geom);
 	}
 
-	const new_P_outline = [ p72, padd( p72, psub( bps1, llc ) ), bps1, llc ];
-	const new_P = new Geom( new_P_outline, null, [0,0,0] );
+	// Define the outline of the P metatile.
+	const new_P_outline = [p72, padd(p72, psub(bps1, llc)), bps1, llc];
+	const new_P = new Geom(new_P_outline, null, [0, 0, 0]);
 	new_P.width = patch.width * 2;
-	for( let ch of [7,2,3,4,28] ) {
-		new_P.addChild( patch.children[ch].T, patch.children[ch].geom );
+	for (let ch of [7, 2, 3, 4, 28]) {
+	    new_P.addChild(patch.children[ch].T, patch.children[ch].geom);
 	}
 
-	const new_F_outline = [ 
-		bps2, patch.evalChild( 24, 2 ), patch.evalChild( 25, 0 ),
-		p252, padd( p252, psub( llc, bps1 ) ) ];
-	const new_F = new Geom( new_F_outline, null, [0,0,0] );
+	// Define the outline of the F metatile.
+	const new_F_outline = [
+	    bps2,
+	    patch.evalChild(24, 2),
+	    patch.evalChild(25, 0),
+	    p252,
+	    padd(p252, psub(llc, bps1)),
+	];
+	const new_F = new Geom(new_F_outline, null, [0, 0, 0]);
 	new_F.width = patch.width * 2;
-	for( let ch of [21,20,22,23,24,25] ) {
-		new_F.addChild( patch.children[ch].T, patch.children[ch].geom );
+	for (let ch of [21, 20, 22, 23, 24, 25]) {
+	    new_F.addChild(patch.children[ch].T, patch.children[ch].geom);
 	}
-	
-	const AAA = new_H_outline[2];
-	const BBB = padd( new_H_outline[1], 
-		psub( new_H_outline[4], new_H_outline[5] ) );
-	const CCC = transPt( rotAbout( BBB, -PI/3 ), AAA );
-	const new_T_outline = [BBB,CCC,AAA];
-	const new_T = new Geom( new_T_outline, null, [0,0,0] );
-	new_T.width = patch.width * 2;
-	new_T.addChild( patch.children[11].T, patch.children[11].geom );
 
+	// Define the outline of the T metatile.
+	const AAA = new_H_outline[2];
+	const BBB = padd(new_H_outline[1], psub(new_H_outline[4], new_H_outline[5]));
+	const CCC = transPt(rotAbout(BBB, -PI / 3), AAA);
+	const new_T_outline = [BBB, CCC, AAA];
+	const new_T = new Geom(new_T_outline, null, [0, 0, 0]);
+	new_T.width = patch.width * 2;
+	new_T.addChild(patch.children[11].T, patch.children[11].geom);
+
+	// Recenter the metatiles.
 	new_H.recentre();
 	new_P.recentre();
 	new_F.recentre();
 	new_T.recentre();
 
-	return [new_H, new_T, new_P, new_F]
+	// Return the constructed metatiles.
+	return [new_H, new_T, new_P, new_F];
 }
 
 function isButtonActive( but )
