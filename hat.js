@@ -65,11 +65,12 @@ function set_f_color() {
     F_hat.fill = color2rgb(cp_f.color());
 }
 
-// Helper functions for point and transformation management
+// Define point (x,y)
 function pt(x, y) {
     return { x: x, y: y };
 }
 
+// Translate point to hexagonal grid
 function hexPt(x, y) {
     return pt(x + 0.5 * y, hr3 * y);
 }
@@ -96,10 +97,12 @@ function mul(A, B) {
     ];
 }
 
+// Point add - Add p to q
 function padd(p, q) {
     return { x: p.x + q.x, y: p.y + q.y };
 }
 
+// Point subtract - Subtract q from p
 function psub(p, q) {
     return { x: p.x - q.x, y: p.y - q.y };
 }
@@ -167,6 +170,37 @@ function drawPolygon( shape, T, f, s, w )
 	vertex( tp.x, tp.y );
     }
     endShape( CLOSE ); // Close the polygon
+}
+
+
+function drawTopArc(shape,T,f,s,w)
+{
+    if( f != null ) { // Set fill color or disable fill
+	fill( ...f );
+    } else {
+	noFill();
+    }
+    if( s != null ) { // Set stroke color, stroke weight or disable stroke
+	stroke( ...s );
+	strokeWeight( w * lw_scale );
+    } else {
+	noStroke();
+    }
+    //The center of the disk
+    const c = transPt(T, shape[5]);
+    //Left arm
+    const l = transPt(T, shape[4]);
+    const ld = pt(lerp(c.x,l.x,0.5),lerp(c.y,l.y,0.5));		      
+    //Right arm
+    const r = transPt(T, shape[6]);
+    const rd = pt(lerp(c.x,r.x,0.5),lerp(c.y,r.y,0.5));
+    //Constrol point
+
+    beginShape()
+    vertex(rd.x,rd.y);
+    vertex(c.x,c.y);
+    vertex(ld.x,ld.y);
+    endShape( CLOSE );    
 }
 
 // Geom class represents polygons and their children, along with their fill and stroke colors.
@@ -769,6 +803,32 @@ function draw()
 	}
     }
 
+    const hat_outline_2 = [
+	hexPt(0, 0), hexPt(-1,-1), hexPt(0,-2), hexPt(2,-2),
+	// The first line intersectets
+	// (2,-1) -- (4,-2) in the middel and
+	// (4,-2) -- (5,-1) in the middle
+	// It a radius 1 disk around (4,-2)
+
+	// the second line starts in the middle of
+	// (0,0) -- (-1,-1) to the middle of
+	// (3,0) -- (2,2)
+	// It a radius 1 disk around (0,0) and a radius 3 disk around (4,-2)
+	// touching on the line from (0,0) to (4,2)
+
+	// The third line start in the middle of
+	// (0,0) -- (-1, 2) to the middle of
+	// (2,2) -- (0,3)
+	// It's (probably) a radius 3 disk around (-2,4)
+    hexPt(2,-1), hexPt(4,-2), hexPt(5,-1), hexPt(4, 0),
+    hexPt(3, 0), hexPt(2, 2), hexPt(0, 3), hexPt(0, 2),
+    hexPt(-1, 2) ];
+
+    // Needs a dot mul
+    const scaler = [20, 0, 0, 0, 20, 0];
+    drawPolygon( hat_outline_2,scaler, [255,0,0], [0,0,0], 1.0 );
+    drawTopArc( hat_outline_2,scaler, [0,,0], [0,0,0], 1.0 );;
+
     if (isButtonActive( draw_grid )) {
         // Add functionality to draw a 100 by 100 grid using the hexPt method
 	stroke(0);
@@ -783,9 +843,9 @@ function draw()
 		const pt3 = hexPt(x * cellSize, (y + 1) * cellSize);
 
 		// Apply the transformations to the grid points
-		const transformedPt1 = transPt(to_screen, pt1);
-		const transformedPt2 = transPt(to_screen, pt2);
-		const transformedPt3 = transPt(to_screen, pt3);
+		const transformedPt1 = transPt(scaler, pt1);
+		const transformedPt2 = transPt(scaler, pt2);
+		const transformedPt3 = transPt(scaler, pt3);
 
 		// Draw horizontal lines
 		if (x < gridSize) {
