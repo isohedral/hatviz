@@ -202,7 +202,6 @@ function drawTruchetComplement(shape,T,f,s,w)
     let angleLRadians = Math.atan2(l1.y - c.y, l1.x - c.x);
     let angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
     beginShape();
-    //arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians, OPEN);
     vertex(rd.x,rd.y);
     for (let p of [shape[10],shape[11],shape[12]]){
 	const tp = transPt(T,p);
@@ -230,10 +229,12 @@ function drawTruchetComplement(shape,T,f,s,w)
     angleLRadians = Math.atan2(l1.y - c.y, l1.x - c.x);
     angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
     arc(c.x,c.y,diameter,diameter,angleRRadians,angleLRadians, PIE);
+    
     //Right polygon addition
-    drawPolygon([shape[5],shape[6],shape[7],shape[8]],T,f,s,w);
+    drawPolygon([shape[5],shape[6],shape[7],shape[8]],T,f,f,w);
     //Left polygon addition
-    drawPolygon([shape[0],shape[1],shape[2],shape[3],shape[4]],T,f,s,w);
+    drawPolygon([shape[0],shape[1],shape[2],shape[3],shape[4]],T,f,f,w);
+    noStroke();
 }
 
 
@@ -245,7 +246,7 @@ function drawTruchet(shape,T,f,f2,s,w)
 	noFill();
     }    
     //Background polygon
-    drawPolygon([shape[0],shape[4],shape[8],shape[9],shape[10],shape[11],shape[12]],T,f,null,w)
+    drawPolygon([shape[0],shape[3],shape[4],shape[8],shape[9],shape[10],shape[11],shape[12]],T,f,null,w)
     //Truchet elements
     drawTruchetComplement(shape,T,f2,null,w);
     if( f != null ) { // Set fill color or disable fill
@@ -281,9 +282,9 @@ function drawTruchet(shape,T,f,f2,s,w)
 
     angleLRadians = Math.atan2(l.y - c.y, l.x - c.x);
     angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
-    arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians, PIE);
+    arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians+0.5, PIE);
 
-    // Draw strok polygon if needed
+    // Draw stroke polygon if needed
     if( s != null ) { // Set stroke color, stroke weight or disable stroke
 	drawPolygon(shape,T,null,s,w);
     }
@@ -326,6 +327,20 @@ class Geom
 	    drawPolygon( this.shape, S, this.fill, this.stroke, this.width );
 	}
     }
+
+    // Draws a truchet tile on the polygon
+    drawTruchet( S, level )
+    {
+	if( level > 0 ) {
+	    for( let g of this.children ) {
+		g.geom.drawTruchet( mul( S, g.T ), level - 1 );
+		
+	    }
+	} else {
+	    drawTruchet( this.shape, S,[255,255,255] ,this.fill, null, this.width );
+	}
+    }
+    
 
     // Recomputes the center of the polygon and repositions its children accordingly.
     recentre()
@@ -891,7 +906,7 @@ function draw()
     }
 
     const scaler = [20, 0, 0, 0, 20, 0];
-    drawTruchet( hat_outline,scaler,[0,0,255] ,[255,0,0], [0,0,0], 1.0 );
+    drawTruchet( hat_outline,mul(    rotAbout(hexPt(0,0),PI/3),scaler),[0,0,255] ,[255,0,0], [0,0,0], 1.0 );
 
     if (isButtonActive( draw_grid )) {
         // Add functionality to draw a 100 by 100 grid using the hexPt method
