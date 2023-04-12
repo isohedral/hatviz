@@ -194,13 +194,12 @@ function drawTopArc(shape,T,f,s,w)
     //Right arm
     const r = transPt(T, shape[6]);
     const rd = pt(lerp(c.x,r.x,0.5),lerp(c.y,r.y,0.5));
-    //Constrol point
+    //Radius
+    const radius = dist(c.x,c.y,l.x,l.y);
 
-    beginShape()
-    vertex(rd.x,rd.y);
-    vertex(c.x,c.y);
-    vertex(ld.x,ld.y);
-    endShape( CLOSE );    
+    let angleLRadians = Math.atan2(l.y - c.y, l.x - c.x);
+    let angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
+    arc(c.x,c.y,radius,radius,angleRRadians,angleLRadians, PIE);
 }
 
 // Geom class represents polygons and their children, along with their fill and stroke colors.
@@ -234,6 +233,7 @@ class Geom
 	if( level > 0 ) {
 	    for( let g of this.children ) {
 		g.geom.draw( mul( S, g.T ), level - 1 );
+		
 	    }
 	} else {
 	    drawPolygon( this.shape, S, this.fill, this.stroke, this.width );
@@ -827,7 +827,7 @@ function draw()
     // Needs a dot mul
     const scaler = [20, 0, 0, 0, 20, 0];
     drawPolygon( hat_outline_2,scaler, [255,0,0], [0,0,0], 1.0 );
-    drawTopArc( hat_outline_2,scaler, [0,,0], [0,0,0], 1.0 );;
+    drawTopArc( hat_outline_2,scaler, [0,255,0], [0,0,0], 1.0 );
 
     if (isButtonActive( draw_grid )) {
         // Add functionality to draw a 100 by 100 grid using the hexPt method
