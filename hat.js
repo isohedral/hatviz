@@ -172,8 +172,7 @@ function drawPolygon( shape, T, f, s, w )
     endShape( CLOSE ); // Close the polygon
 }
 
-
-function drawTopArc(shape,T,f,s,w)
+function drawTruchetComplement(shape,T,f,s,w)
 {
     if( f != null ) { // Set fill color or disable fill
 	fill( ...f );
@@ -186,20 +185,108 @@ function drawTopArc(shape,T,f,s,w)
     } else {
 	noStroke();
     }
-    //The center of the disk
-    const c = transPt(T, shape[5]);
+    //Bottom disk
+    //The center of the bottom disk
+    let c = transPt(T,hexPt(-2,4));
     //Left arm
-    const l = transPt(T, shape[4]);
-    const ld = pt(lerp(c.x,l.x,0.5),lerp(c.y,l.y,0.5));		      
+    let l1 = transPt(T, shape[12]);
+    let l2 = transPt(T, shape[0]);
+    let ld = pt(lerp(l1.x,l2.x,0.5),lerp(l1.y,l2.y,0.5));		      
     //Right arm
-    const r = transPt(T, shape[6]);
-    const rd = pt(lerp(c.x,r.x,0.5),lerp(c.y,r.y,0.5));
-    //Radius
-    const radius = dist(c.x,c.y,l.x,l.y);
+    let r = transPt(T, shape[9]);
+    let r2 = transPt(T, shape[10]);
+    let rd = pt(lerp(r.x,r2.x,0.5),lerp(r.y,r2.y,0.5));
+    //Diameter
+    let diameter = 2*dist(c.x,c.y,ld.x,ld.y);
+
+    let angleLRadians = Math.atan2(l1.y - c.y, l1.x - c.x);
+    let angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
+    beginShape();
+    //arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians, OPEN);
+    vertex(rd.x,rd.y);
+    for (let p of [shape[10],shape[11],shape[12]]){
+	const tp = transPt(T,p);
+	vertex(tp.x,tp.y);
+    }
+    vertex(ld.x,ld.y);
+    const controlPt = transPt(T, hexPt(0.8,1.5));
+    bezierVertex(controlPt.x,controlPt.y,controlPt.x,controlPt.y,rd.x,rd.y);
+
+    endShape(CLOSE);
+    arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians, OPEN);
+
+    // Top disk
+    //The center of the top disk
+    c = transPt(T, shape[5]);
+    //Left arm
+    l1 = transPt(T, shape[4]);
+    l2 = transPt(T, shape[0]);
+    ld = pt(lerp(l1.x,l2.x,0.5),lerp(l1.y,l2.y,0.5));		      
+    //Right arm
+    r = transPt(T, shape[8]);
+    //Diameter
+    diameter = 2*dist(c.x,c.y,ld.x,ld.y);
+
+    angleLRadians = Math.atan2(l1.y - c.y, l1.x - c.x);
+    angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
+    arc(c.x,c.y,diameter,diameter,angleRRadians,angleLRadians, PIE);
+    //Right polygon addition
+    drawPolygon([shape[5],shape[6],shape[7],shape[8]],T,f,s,w);
+    //Left polygon addition
+    drawPolygon([shape[0],shape[1],shape[2],shape[3],shape[4]],T,f,s,w);
+}
+
+
+function drawTruchet(shape,T,f,f2,s,w)
+{
+    if( f != null ) { // Set fill color or disable fill
+	fill( ...f );
+    } else {
+	noFill();
+    }    
+    //Background polygon
+    drawPolygon([shape[0],shape[4],shape[8],shape[9],shape[10],shape[11],shape[12]],T,f,null,w)
+    //Truchet elements
+    drawTruchetComplement(shape,T,f2,null,w);
+    if( f != null ) { // Set fill color or disable fill
+	fill( ...f );
+    } else {
+	noFill();
+    }  
+    //Redrawn background elements
+    
+    //The center of the top disk
+    let c = transPt(T, shape[5]);
+    //Left arm
+    let l = transPt(T, shape[4]);
+    //Right arm
+    let r = transPt(T, shape[6]);
+
+    // Diameter
+    let diameter = dist(c.x,c.y,l.x,l.y);
 
     let angleLRadians = Math.atan2(l.y - c.y, l.x - c.x);
     let angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
-    arc(c.x,c.y,radius,radius,angleRRadians,angleLRadians, PIE);
+    arc(c.x,c.y,diameter,diameter,angleRRadians,angleLRadians, PIE);
+
+    //The center of the bottom disk
+    c = transPt(T, shape[0]);
+    //Left arm
+    l = transPt(T, shape[1]);
+    //Right arm
+    r = transPt(T, shape[4]);
+
+    // Diameter
+    diameter = dist(c.x,c.y,l.x,l.y);
+
+    angleLRadians = Math.atan2(l.y - c.y, l.x - c.x);
+    angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
+    arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians, PIE);
+
+    // Draw strok polygon if needed
+    if( s != null ) { // Set stroke color, stroke weight or disable stroke
+	drawPolygon(shape,T,null,s,w);
+    }
 }
 
 // Geom class represents polygons and their children, along with their fill and stroke colors.
@@ -803,31 +890,8 @@ function draw()
 	}
     }
 
-    const hat_outline_2 = [
-	hexPt(0, 0), hexPt(-1,-1), hexPt(0,-2), hexPt(2,-2),
-	// The first line intersectets
-	// (2,-1) -- (4,-2) in the middel and
-	// (4,-2) -- (5,-1) in the middle
-	// It a radius 1 disk around (4,-2)
-
-	// the second line starts in the middle of
-	// (0,0) -- (-1,-1) to the middle of
-	// (3,0) -- (2,2)
-	// It a radius 1 disk around (0,0) and a radius 3 disk around (4,-2)
-	// touching on the line from (0,0) to (4,2)
-
-	// The third line start in the middle of
-	// (0,0) -- (-1, 2) to the middle of
-	// (2,2) -- (0,3)
-	// It's (probably) a radius 3 disk around (-2,4)
-    hexPt(2,-1), hexPt(4,-2), hexPt(5,-1), hexPt(4, 0),
-    hexPt(3, 0), hexPt(2, 2), hexPt(0, 3), hexPt(0, 2),
-    hexPt(-1, 2) ];
-
-    // Needs a dot mul
     const scaler = [20, 0, 0, 0, 20, 0];
-    drawPolygon( hat_outline_2,scaler, [255,0,0], [0,0,0], 1.0 );
-    drawTopArc( hat_outline_2,scaler, [0,255,0], [0,0,0], 1.0 );
+    drawTruchet( hat_outline,scaler,[0,0,255] ,[255,0,0], [0,0,0], 1.0 );
 
     if (isButtonActive( draw_grid )) {
         // Add functionality to draw a 100 by 100 grid using the hexPt method
