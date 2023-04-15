@@ -45,6 +45,7 @@ let t_color = [251, 251, 251];
 let p_color = [250, 250, 250];
 let f_color = [191, 191, 191];
 let truchet_color = [0, 137, 212];
+let background_color =[255,255,255];
 
 // Helper functions for color management
 function color2rgb(c) {
@@ -67,6 +68,9 @@ function set_f_color() {
 }
 function set_truchet_color(){
     truchet_color = color2rgb(cp_truchet.color());
+}
+function set_background_color(){
+    background_color = color2rgb(cp_bg.color());
 }
 
 // Define point (x,y)
@@ -763,6 +767,11 @@ function setup() {
     cp_h.mousePressed( function() { loop() } );
     cp_h.input(set_h_color);
     cp_h.position( 10, box_height );
+
+    cp_bg = createColorPicker( color( ...background_color) );
+    cp_bg.mousePressed( function() { loop() } );
+    cp_bg.input(set_background_color);
+    cp_bg.position( 80, box_height );
     box_height += 40;
 
     cp_t = createColorPicker( color( ...t_color ) );
@@ -893,7 +902,7 @@ function setup() {
 
 function draw()
 {
-    background( 255 );
+    background( cp_bg.color() );
 
     push();
     translate( width/2, height/2 );
