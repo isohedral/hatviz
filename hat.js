@@ -44,6 +44,7 @@ let h_color = [148, 205, 235];
 let t_color = [251, 251, 251];
 let p_color = [250, 250, 250];
 let f_color = [191, 191, 191];
+let truchet_color = [0, 137, 212];
 
 // Helper functions for color management
 function color2rgb(c) {
@@ -63,6 +64,9 @@ function set_p_color() {
 }
 function set_f_color() {
     F_hat.fill = color2rgb(cp_f.color());
+}
+function set_truchet_color(){
+    truchet_color = color2rgb(cp_truchet.color());
 }
 
 // Define point (x,y)
@@ -196,10 +200,10 @@ function drawPolygon( shape, T, f, s, w )
     endShape( CLOSE ); // Close the polygon
 }
 
-function drawTruchet(shape,T,f,f2,s,w)
+function drawTruchet(shape,T,f,s,w)
 {
     if( f != null ) { // Set fill color or disable fill
-	fill( ...f2 );
+	fill( ...f );
     } else {
 	noFill();
     }
@@ -320,7 +324,7 @@ class Geom
 	    }
 	} else {
 	    if (this.shape.length == 13) {
-	    	drawTruchet(this.shape,S,[255,255,255],[50,255,50],null,1.0);
+	    	drawTruchet(this.shape,S,truchet_color,truchet_color,.2);
 	    }
 	}
     }
@@ -748,6 +752,11 @@ function setup() {
     cp_h1.mousePressed( function() { loop() } );
     cp_h1.input(set_h1_color);
     cp_h1.position( 10, box_height );
+    
+    cp_truchet = createColorPicker( color( ...truchet_color ) );
+    cp_truchet.mousePressed( function() { loop() } );
+    cp_truchet.input(set_truchet_color);
+    cp_truchet.position( 80, box_height );
     box_height += 40;
 
     cp_h = createColorPicker( color( ...h_color) );
@@ -815,9 +824,20 @@ function setup() {
     draw_super.size( 125, 25 );
     box_height += 30;
 
+    // Add a new button for drawing truchet pattern
+    draw_truchet = createButton('Truchet Pattern');
+    setButtonActive( draw_truchet, false );
+    draw_truchet.mousePressed(() => {
+	setButtonActive( draw_truchet, !isButtonActive( draw_truchet ) );
+	loop();
+    } );
+    draw_truchet.position(10, box_height);
+    draw_truchet.size( 125, 25 );
+    box_height += 40;
+
     // Add a new button for drawing the grid
     draw_grid = createButton('Draw Grid');
-    setButtonActive( draw_grid, true );
+    setButtonActive( draw_grid, false );
     draw_grid.mousePressed(() => {
 	setButtonActive( draw_grid, !isButtonActive( draw_grid ) );
 	loop();
@@ -889,7 +909,7 @@ function draw()
 	}
     }
 
-    if (true){
+    if ( isButtonActive( draw_truchet) ){
 	tiles[idx].drawTruchet( to_screen, level );
     }
 
