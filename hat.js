@@ -198,12 +198,16 @@ function drawPolygon( shape, T, f, s, w )
 
 function drawTruchet(shape,T,f,f2,s,w)
 {
-    //Background polygon
-    drawPolygon(shape,T,f,null,w)
     if( f != null ) { // Set fill color or disable fill
 	fill( ...f2 );
     } else {
 	noFill();
+    }
+    if( s != null ) { // Set stroke color, stroke weight or disable stroke
+	stroke( ...s );
+	strokeWeight( w * lw_scale );
+    } else {
+	noStroke();
     }
     //Bottom disk
     //The center of the bottom disk
@@ -316,7 +320,7 @@ class Geom
 	    }
 	} else {
 	    if (this.shape.length == 13) {
-	    	drawTruchet(this.shape,S,[0,255,200],[255,255,255],null,1.0);
+	    	drawTruchet(this.shape,S,[255,255,255],[50,255,50],null,1.0);
 	    }
 	}
     }
