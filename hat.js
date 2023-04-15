@@ -75,6 +75,30 @@ function hexPt(x, y) {
     return pt(x + 0.5 * y, hr3 * y);
 }
 
+function arcPoints(cx,cy,sx,sy,ex,ey,t)
+{
+    function pointToRadian(cx,cy,px,py)
+    {
+	return Math.atan2(py - cy, px - cx);
+    }
+
+    function radianToPoint(cx,cy,rad,radius)
+    {
+	return pt(radius*cos(rad)+cx,radius*sin(rad)+cy);
+    }
+
+    let radius = dist(cx,cy,sx,sy);
+    let points = []
+    for (let i = 0; i <= t; i++)
+    {
+	px = lerp(sx,ex,i/t);
+	py = lerp(sy,ey,i/t);
+	points.push(radianToPoint(cx,cy,pointToRadian(cx,cy,px,py),radius));	
+    }
+    return points;    
+}
+
+
 // Affine matrix inverse
 function inv(T) {
     const det = T[0] * T[4] - T[1] * T[3];
@@ -172,122 +196,76 @@ function drawPolygon( shape, T, f, s, w )
     endShape( CLOSE ); // Close the polygon
 }
 
-function drawTruchetComplement(shape,T,f,s,w)
+function drawTruchet(shape,T,f,f2,s,w)
 {
+    //Background polygon
+    drawPolygon(shape,T,f,null,w)
     if( f != null ) { // Set fill color or disable fill
-	fill( ...f );
+	fill( ...f2 );
     } else {
 	noFill();
-    }
-    if( s != null ) { // Set stroke color, stroke weight or disable stroke
-	stroke( ...s );
-	strokeWeight( w * lw_scale );
-    } else {
-	noStroke();
     }
     //Bottom disk
     //The center of the bottom disk
-    let c = transPt(T,hexPt(-2,4));
+    let c = hexPt(-2,4);
     //Left arm
-    let l1 = transPt(T, shape[12]);
-    let l2 = transPt(T, shape[0]);
-    let ld = pt(lerp(l1.x,l2.x,0.5),lerp(l1.y,l2.y,0.5));		      
+    let l = pt(lerp(shape[12].x,shape[0].x,0.5),lerp(shape[12].y,shape[0].y,0.5));		      
     //Right arm
-    let r = transPt(T, shape[9]);
-    let r2 = transPt(T, shape[10]);
-    let rd = pt(lerp(r.x,r2.x,0.5),lerp(r.y,r2.y,0.5));
-    //Diameter
-    let diameter = 2*dist(c.x,c.y,ld.x,ld.y);
+    let r = pt(lerp(shape[9].x,shape[10].x,0.5),lerp(shape[9].y,shape[10].y,0.5));
 
-    let angleLRadians = Math.atan2(l1.y - c.y, l1.x - c.x);
-    let angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
     beginShape();
-    vertex(rd.x,rd.y);
-    for (let p of [shape[10],shape[11],shape[12]]){
+    for(let p of [r,shape[10],shape[11],shape[12],l]){
+	const pt = transPt(T,p);
+	vertex(pt.x,pt.y);
+    }
+    for(let arcPoint of arcPoints(c.x,c.y,r.x,r.y,l.x,l.y,20))
+    {
+	const pt = transPt(T,arcPoint);
+	vertex(pt.x, pt.y);
+    }
+    endShape();    
+
+    // Belt
+    beginShape();
+    let startpoint = pt(lerp(shape[0].x,shape[1].x,0.5),lerp(shape[0].y,shape[1].y,0.5));
+    for(let p of [startpoint,shape[1],shape[2],shape[3],shape[4]]){
 	const tp = transPt(T,p);
 	vertex(tp.x,tp.y);
     }
-    vertex(ld.x,ld.y);
-    const controlPt = transPt(T, hexPt(0.8,1.5));
-    bezierVertex(controlPt.x,controlPt.y,controlPt.x,controlPt.y,rd.x,rd.y);
-
-    endShape(CLOSE);
-    arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians, OPEN);
-
-    // Top disk
-    //The center of the top disk
-    c = transPt(T, shape[5]);
-    //Left arm
-    l1 = transPt(T, shape[4]);
-    l2 = transPt(T, shape[0]);
-    ld = pt(lerp(l1.x,l2.x,0.5),lerp(l1.y,l2.y,0.5));		      
-    //Right arm
-    r = transPt(T, shape[8]);
-    //Diameter
-    diameter = 2*dist(c.x,c.y,ld.x,ld.y);
-
-    angleLRadians = Math.atan2(l1.y - c.y, l1.x - c.x);
-    angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
-    arc(c.x,c.y,diameter,diameter,angleRRadians,angleLRadians, PIE);
-    
-    //Right polygon addition
-    drawPolygon([shape[5],shape[6],shape[7],shape[8]],T,f,f,w);
-    //Left polygon addition
-    drawPolygon([shape[0],shape[1],shape[2],shape[3],shape[4]],T,f,f,w);
-    noStroke();
-}
-
-
-function drawTruchet(shape,T,f,f2,s,w)
-{
-    if( f != null ) { // Set fill color or disable fill
-	fill( ...f );
-    } else {
-	noFill();
-    }    
-    //Background polygon
-    drawPolygon([shape[0],shape[3],shape[4],shape[8],shape[9],shape[10],shape[11],shape[12]],T,f,null,w)
-    //Truchet elements
-    drawTruchetComplement(shape,T,f2,null,w);
-    if( f != null ) { // Set fill color or disable fill
-	fill( ...f );
-    } else {
-	noFill();
-    }  
-    //Redrawn background elements
-    
-    //The center of the top disk
-    let c = transPt(T, shape[5]);
-    //Left arm
-    let l = transPt(T, shape[4]);
-    //Right arm
-    let r = transPt(T, shape[6]);
-
-    // Diameter
-    let diameter = dist(c.x,c.y,l.x,l.y);
-
-    let angleLRadians = Math.atan2(l.y - c.y, l.x - c.x);
-    let angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
-    arc(c.x,c.y,diameter,diameter,angleRRadians,angleLRadians, PIE);
-
-    //The center of the bottom disk
-    c = transPt(T, shape[0]);
-    //Left arm
-    l = transPt(T, shape[1]);
-    //Right arm
-    r = transPt(T, shape[4]);
-
-    // Diameter
-    diameter = dist(c.x,c.y,l.x,l.y);
-
-    angleLRadians = Math.atan2(l.y - c.y, l.x - c.x);
-    angleRRadians = Math.atan2(r.y - c.y, r.x - c.x);
-    arc(c.x,c.y,diameter,diameter,angleLRadians,angleRRadians+0.5, PIE);
-
-    // Draw stroke polygon if needed
-    if( s != null ) { // Set stroke color, stroke weight or disable stroke
-	drawPolygon(shape,T,null,s,w);
+    //Upper arc
+    c = shape[5]
+    l = pt(lerp(shape[5].x,shape[4].x,0.5),lerp(shape[5].y,shape[4].y,0.5));
+    r = pt(lerp(shape[5].x,shape[6].x,0.5),lerp(shape[5].y,shape[6].y,0.5));
+    for(let arcPoint of arcPoints(c.x,c.y,l.x,l.y,r.x,r.y,20))
+    {
+	const pt = transPt(T,arcPoint);
+	vertex(pt.x, pt.y);
     }
+    for(let p of [shape[6],shape[7],shape[8]]){
+	const tp = transPt(T,p);
+	vertex(tp.x,tp.y);
+    }
+
+    //lower main arc
+    l = pt(lerp(shape[4].x,shape[0].x,0.5),lerp(shape[4].y,shape[0].y,0.5));		      
+    r = pt(lerp(shape[8].x,shape[9].x,0.5),lerp(shape[8].y,shape[9].y,0.5));
+
+    for(let arcPoint of arcPoints(c.x,c.y,r.x,r.y,l.x,l.y,20))
+    {
+	const pt = transPt(T,arcPoint);
+	vertex(pt.x, pt.y);
+    }
+    //lower minor arc
+    c = shape[0];
+    r = l;
+    l = startpoint;
+    
+    for(let arcPoint of arcPoints(c.x,c.y,r.x,r.y,l.x,l.y,20))
+    {
+	const pt = transPt(T,arcPoint);
+	vertex(pt.x, pt.y);
+    }
+    endShape();        
 }
 
 // Geom class represents polygons and their children, along with their fill and stroke colors.
@@ -324,7 +302,7 @@ class Geom
 		
 	    }
 	} else {
-	    drawPolygon( this.shape, S, this.fill, this.stroke, this.width );
+	    drawPolygon( this.shape, S, this.fill, this.stroke, this.width );	    
 	}
     }
 
@@ -337,7 +315,9 @@ class Geom
 		
 	    }
 	} else {
-	    drawTruchet( this.shape, S,[255,255,255] ,this.fill, null, this.width );
+	    if (this.shape.length == 13) {
+	    	drawTruchet(this.shape,S,[0,255,200],[255,255,255],null,1.0);
+	    }
 	}
     }
     
@@ -905,9 +885,13 @@ function draw()
 	}
     }
 
-    const scaler = [20, 0, 0, 0, 20, 0];
-    drawTruchet( hat_outline,mul(    rotAbout(hexPt(0,0),PI/3),scaler),[0,0,255] ,[255,0,0], [0,0,0], 1.0 );
+    if (true){
+	tiles[idx].drawTruchet( to_screen, level );
+    }
 
+    const scaler = [20, 0, 0, 0, 20, 0];
+//    drawTruchet(hat_outline,scaler,[0,0,255],[0,255,0],null,1.0);
+    
     if (isButtonActive( draw_grid )) {
         // Add functionality to draw a 100 by 100 grid using the hexPt method
 	stroke(0);
