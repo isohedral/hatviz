@@ -51,21 +51,6 @@ let background_color =[255,255,255];
 function color2rgb(c) {
     return [c.levels[0], c.levels[1], c.levels[2]];
 }
-function set_h1_color() {
-    H1_hat.fill = color2rgb(cp_h1.color());
-}
-function set_h_color() {
-    H_hat.fill = color2rgb(cp_h.color());
-}
-function set_t_color() {
-    T_hat.fill = color2rgb(cp_t.color());
-}
-function set_p_color() {
-    P_hat.fill = color2rgb(cp_p.color());
-}
-function set_f_color() {
-    F_hat.fill = color2rgb(cp_f.color());
-}
 function set_truchet_color(){
     truchet_color = color2rgb(cp_truchet.color());
 }
@@ -752,45 +737,80 @@ function setup() {
     radio.selected( 'H' );
     box_height += 40;
 
-    cp_h1 = createColorPicker( color( ...h1_color ) );
-    cp_h1.mousePressed( function() { loop() } );
-    cp_h1.input(set_h1_color);
-    cp_h1.position( 10, box_height );
+    // Add a new function to create color picker with label
+    function createColorPickerWithLabel(labelText, inputColor, xPos, yPos) {
+        const label = createElement('label', labelText);
+        label.position(xPos, yPos);
+
+        const cp = createColorPicker(inputColor);
+	cp.mousePressed( function() { loop() } );	
+        cp.position(xPos, yPos+20);
+
+        return cp;
+    }
+
+    // Replace the existing color pickers with the new function
+    cp_h1 = createColorPickerWithLabel('H1', color(...h1_color), 10, box_height);
+    cp_h1.input(() => {H1_hat.fill = color2rgb(cp_h1.color());});
+
+    cp_h =createColorPickerWithLabel('H', color(...h_color), 80, box_height);
+    cp_h.input(() => {H_hat.fill = color2rgb(cp_h.color());});
+    box_height += 50;
+
+    cp_t = createColorPickerWithLabel('T', color(...t_color), 10, box_height);
+    cp_t.input(() => {T_hat.fill = color2rgb(cp_t.color());});
+
+    cp_p = createColorPickerWithLabel('P', color(...p_color), 80, box_height);
+    cp_p.input(() => {P_hat.fill = color2rgb(cp_p.color());});
+    box_height += 50;
+
+    cp_f = createColorPickerWithLabel('F', color(...f_color), 10, box_height);
+    cp_f.input(() => {F_hat.fill= color2rgb(cp_f.color());});
+
+    // Add stroke pickers with checkboxes
+    cp_s = createColorPickerWithLabel('',color(0,0,0), 80, box_height);
+    cp_s.input(() => {
+	const strokeColor = color2rgb(cp_s.color());
+	H1_hat.stroke = strokeColor;
+	H_hat.stroke = strokeColor;
+	T_hat.stroke = strokeColor;
+	P_hat.stroke = strokeColor;
+	F_hat.stroke = strokeColor;
+    });
+
+    const strokeCheckbox = createCheckbox('Stroke',true);
+    strokeCheckbox.position(75, box_height);
+    strokeCheckbox.changed(function() {
+	if (this.checked()) {
+	    const strokeColor = color2rgb(cp_s.color());
+	    H1_hat.stroke = strokeColor;
+	    H_hat.stroke = strokeColor;
+	    T_hat.stroke = strokeColor;
+	    P_hat.stroke = strokeColor;
+	    F_hat.stroke = strokeColor;
+	} else {
+	    const weakStroke = 0.2;
+	    H1_hat.stroke = H1_hat.fill;	    
+	    H_hat.stroke = H_hat.fill;
+	    T_hat.stroke = T_hat.fill;
+	    P_hat.stroke = P_hat.fill;
+	    F_hat.stroke = F_hat.fill;
+	    H1_hat.width = weakStroke;
+	    H_hat.width = weakStroke;
+	    T_hat.width = weakStroke;
+	    P_hat.width = weakStroke;
+	    F_hat.width = weakStroke;
+	}
+    });
+    box_height += 50;
+        
+    cp_bg = createColorPickerWithLabel('Void', color(...background_color), 10, box_height);
+    cp_bg.input(() => {background_color = color2rgb(cp_bg.color());});
+
+    cp_truchet = createColorPickerWithLabel('Truchet', color(...truchet_color), 80, box_height);
+    cp_truchet.input(() => {truchet_color = color2rgb(cp_truchet.color());});
     
-    cp_truchet = createColorPicker( color( ...truchet_color ) );
-    cp_truchet.mousePressed( function() { loop() } );
-    cp_truchet.input(set_truchet_color);
-    cp_truchet.position( 80, box_height );
-    box_height += 40;
-
-    cp_h = createColorPicker( color( ...h_color) );
-    cp_h.mousePressed( function() { loop() } );
-    cp_h.input(set_h_color);
-    cp_h.position( 10, box_height );
-
-    cp_bg = createColorPicker( color( ...background_color) );
-    cp_bg.mousePressed( function() { loop() } );
-    cp_bg.input(set_background_color);
-    cp_bg.position( 80, box_height );
-    box_height += 40;
-
-    cp_t = createColorPicker( color( ...t_color ) );
-    cp_t.mousePressed( function() { loop() } );
-    cp_t.input(set_t_color);
-    cp_t.position( 10, box_height );
-    box_height += 40;
-
-    cp_p = createColorPicker( color( ...p_color) );
-    cp_p.mousePressed( function() { loop() } );
-    cp_p.input(set_p_color);
-    cp_p.position( 10, box_height );
-    box_height += 40;
-
-    cp_f = createColorPicker( color( ...f_color ) );
-    cp_f.mousePressed( function() { loop() } );
-    cp_f.input(set_f_color);
-    cp_f.position( 10, box_height );
-    box_height += 40;
+    box_height += 60;
 
     translate_button = createButton( "Translate" );
     setButtonActive( translate_button, true );
@@ -811,7 +831,7 @@ function setup() {
 	setButtonActive( scale_button, true );
 	loop();
     } );
-    box_height += 30;
+    box_height += 40;
     
     draw_hats = createButton( "Draw Hats" );
     setButtonActive( draw_hats, true );
@@ -842,7 +862,7 @@ function setup() {
     } );
     draw_truchet.position(10, box_height);
     draw_truchet.size( 125, 25 );
-    box_height += 40;
+    box_height += 30;
 
     // Add a new button for drawing the grid
     draw_grid = createButton('Draw Grid');
@@ -902,7 +922,7 @@ function setup() {
 
 function draw()
 {
-    background( cp_bg.color() );
+    background( background_color );
 
     push();
     translate( width/2, height/2 );
@@ -922,26 +942,26 @@ function draw()
 	tiles[idx].drawTruchet( to_screen, level );
     }
 
-    const scaler = [20, 0, 0, 0, 20, 0];
-//    drawTruchet(hat_outline,scaler,[0,0,255],[0,255,0],null,1.0);
+    const gridScaler = [10, 0, 0, 0, 10, 0];
     
     if (isButtonActive( draw_grid )) {
         // Add functionality to draw a 100 by 100 grid using the hexPt method
 	stroke(0);
 	strokeWeight(1);
-	const gridSize = 10;
+	const gridSize = 40;
 	const cellSize = 5;
+	const offset = hexPt((gridSize/2)*cellSize,(gridSize/2)*cellSize)
 
 	for (let x = 0; x <= gridSize; x++) {
 	    for (let y = 0; y <= gridSize; y++) {
-		const pt1 = hexPt(x * cellSize, y * cellSize);
-		const pt2 = hexPt((x + 1) * cellSize, y * cellSize);
-		const pt3 = hexPt(x * cellSize, (y + 1) * cellSize);
+		const pt1 = psub(hexPt(x * cellSize, y * cellSize),offset);
+		const pt2 = psub(hexPt((x + 1) * cellSize, y * cellSize),offset);
+		const pt3 = psub(hexPt(x * cellSize, (y + 1) * cellSize),offset);;
 
 		// Apply the transformations to the grid points
-		const transformedPt1 = transPt(scaler, pt1);
-		const transformedPt2 = transPt(scaler, pt2);
-		const transformedPt3 = transPt(scaler, pt3);
+		const transformedPt1 = transPt(gridScaler, pt1);
+		const transformedPt2 = transPt(gridScaler, pt2);
+		const transformedPt3 = transPt(gridScaler, pt3);
 
 		// Draw horizontal lines
 		if (x < gridSize) {
