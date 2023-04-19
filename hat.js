@@ -313,7 +313,7 @@ class Geom
 	    }
 	} else {
 	    if (this.shape.length == 13) {
-	    	drawTruchet(this.shape,S,truchet_color,truchet_color,.2);
+	    	drawTruchet(this.shape,S,truchet_color,truchet_color,.4);
 	    }
 	}
     }
