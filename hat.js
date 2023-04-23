@@ -11,6 +11,8 @@ let reset_button;
 let subst_button;
 let translate_button;
 let scale_button;
+let truchetCheckbox;
+let strokeCheckbox
 let draw_hats;
 let draw_super;
 let radio;
@@ -94,11 +96,19 @@ class HatTile
 		this.label = label;
 		this.svg_id = null;
 	}
-
-	draw( S, level )
+    
+	draw( S, level, truchet, stroke )
 	{
+
+	drawPolygon(
+	    // The half stroke avoids conflicts when rending truchet patterns atop non-stroked hats
+	    hat_outline, S, cols[this.label].color(), stroke? black: cols[this.label].color(), stroke? 1 : 0.5 );
+	if(truchet){
 		drawPolygon( 
-			hat_outline, S, cols[this.label].color(), black, 1 );
+		    truchetTop, S, cols["Truchet"].color(), stroke? black : cols["Truchet"].color(), 1 );
+		drawPolygon( 
+		    truchetBtm, S, cols["Truchet"].color(), stroke? black : cols["Truchet"].color(), 1 );
+            }
 	}
 
 	resetSVG()
@@ -157,11 +167,11 @@ class MetaTile
 		return transPt( this.children[n].T, this.children[n].geom.shape[i] );
 	}
 
-	draw( S, level )
+	draw( S, level , truchet, stroke)
 	{
 		if( level > 0 ) {
 			for( let g of this.children ) {
-				g.geom.draw( mul( S, g.T ), level - 1 );
+			    g.geom.draw( mul( S, g.T ), level - 1 , truchet, stroke);
 			}
 		} else {
 			drawPolygon( this.shape, S, null, black, this.width );
@@ -484,7 +494,10 @@ function setup() {
 	createCanvas( windowWidth, windowHeight );
 
 	tiles = [H_init, T_init, P_init, F_init];
-	level = 1;
+        level = 1;
+        truchetTop = truchetTopFromHat( hat_outline );
+        truchetBtm = truchetBtmFromHat( hat_outline );
+
 
 	black = color( 'black' );
 
@@ -517,32 +530,44 @@ function setup() {
 	box_height += 40;
 
 	const cp_info = {
-		'H1' : [0, 137, 212],
-		'H' : [148, 205, 235],
-		'T' : [251, 251, 251],
-		'P' : [250, 250, 250],
-		'F' : [191, 191, 191]
+	    'H1' : [0, 137, 212],
+	    'H' : [148, 205, 235],
+	    'T' : [251, 251, 251],
+	    'P' : [250, 250, 250],
+	    'F' : [191, 191, 191],
+	    'Plane' : [255, 255, 255],
+	    'Truchet' : [0, 189, 107],	   
+	    'Stroke' : [0, 0, 0]
 	};
 
 	let count = 0;
 	for( let [name, col] of Object.entries( cp_info ) ) {
-		const label = createSpan( name );
-		label.position( 10 + 70*count, box_height );
-		const cp = createColorPicker( color( ...col ) );
-		cp.mousePressed( function() { loop() } );
-		cp.position( 10 + 70*count, box_height + 20 );
-		cols[name] = cp;
-
-		++count;
-		if( count == 2 ) {
-			count = 0;
-			box_height += 50;
-		}
+	    const label = createSpan( name );
+	    label.position( 10 + 70*count, box_height );
+            const cp = createColorPicker( color( ...col ) );
+            cp.mousePressed( function() { loop() } );
+	    cp.position( 10 + 70*count, box_height + 20 );
+	    cols[name] = cp;
+	    
+	    ++count;
+	    if( count == 2 ) {
+		count = 0;
+		box_height += 50;
+	    }
 	}
 	if( count == 1 ) {
 		box_height += 50;
 	}
 	box_height += 20;
+
+	strokeCheckbox = createCheckbox('',true);
+	cols["Stroke"].size(32);
+        strokeCheckbox.position(cols["Stroke"].x +cols["Stroke"].width , cols["Stroke"].y-3);
+	
+	truchetCheckbox = createCheckbox('',false);
+	cols["Truchet"].size(32);
+	truchetCheckbox.position(cols["Truchet"].x +cols["Truchet"].width , cols["Truchet"].y-3);
+    
 
 	translate_button = addButton( "Translate", function() {
 		setButtonActive( translate_button, true );
@@ -619,14 +644,14 @@ function setup() {
 
 function draw()
 {
-	background( 255 );
+        background( cols["Plane"].color() );
 
 	push();
 	translate( width/2, height/2 );
 	const idx = {'H':0, 'T':1, 'P':2, 'F':3}[radio.value()];
 
 	if( isButtonActive( draw_hats ) ) {
-		tiles[idx].draw( to_screen, level );
+	    tiles[idx].draw( to_screen, level, truchetCheckbox.checked(), strokeCheckbox.checked() );
 	}
 
 	if( isButtonActive( draw_super ) ) {

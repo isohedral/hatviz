@@ -94,3 +94,66 @@ const hat_outline = [
     hexPt(2,-1), hexPt(4,-2), hexPt(5,-1), hexPt(4, 0),
     hexPt(3, 0), hexPt(2, 2), hexPt(0, 3), hexPt(0, 2),
     hexPt(-1, 2) ];
+
+function arcPoints(cx,cy,sx,sy,ex,ey,t)
+{
+    function pointToRadian(cx,cy,px,py)
+    {
+	return Math.atan2(py - cy, px - cx);
+    }
+
+    function radianToPoint(cx,cy,rad,radius)
+    {
+	return pt(radius*cos(rad)+cx,radius*sin(rad)+cy);
+    }
+
+    let radius = dist(cx,cy,sx,sy);
+    let points = []
+    for (let i = 0; i <= t; i++)
+    {
+	px = lerp(sx,ex,i/t);
+	py = lerp(sy,ey,i/t);
+	points.push(radianToPoint(cx,cy,pointToRadian(cx,cy,px,py),radius));	
+    }
+    return points;    
+}
+    
+function truchetTopFromHat( shape )
+{
+    // Belt
+    let startpoint = pt(lerp(shape[0].x,shape[1].x,0.5),lerp(shape[0].y,shape[1].y,0.5));
+    let beltShape =  [startpoint,shape[1],shape[2],shape[3],shape[4]];
+    //Upper arc
+    c = shape[5]
+    l = pt(lerp(shape[5].x,shape[4].x,0.5),lerp(shape[5].y,shape[4].y,0.5));
+    r = pt(lerp(shape[5].x,shape[6].x,0.5),lerp(shape[5].y,shape[6].y,0.5));
+    beltShape = beltShape.concat(arcPoints(c.x,c.y,l.x,l.y,r.x,r.y,20));
+    // Right side
+    beltShape = beltShape.concat([shape[6],shape[7],shape[8]]);
+    //lower main arc
+    l = pt(lerp(shape[4].x,shape[0].x,0.5),lerp(shape[4].y,shape[0].y,0.5));		      
+    r = pt(lerp(shape[8].x,shape[9].x,0.5),lerp(shape[8].y,shape[9].y,0.5));
+    beltShape = beltShape.concat(arcPoints(c.x,c.y,r.x,r.y,l.x,l.y,20));
+    //lower minor arc
+    c = shape[0];
+    r = l;
+    l = startpoint;
+    beltShape = beltShape.concat(arcPoints(c.x,c.y,r.x,r.y,l.x,l.y,20));
+    return beltShape
+}
+
+function truchetBtmFromHat( shape )
+{
+    //Bottom disk
+    //The center of the bottom disk
+    let c = hexPt(-2,4);
+    //Left arm
+    let l = pt(lerp(shape[12].x,shape[0].x,0.5),lerp(shape[12].y,shape[0].y,0.5));		      
+    //Right arm
+    let r = pt(lerp(shape[9].x,shape[10].x,0.5),lerp(shape[9].y,shape[10].y,0.5));
+    return [r,shape[10],shape[11],shape[12],l].concat(arcPoints(c.x,c.y,l.x,l.y,r.x,r.y,20));
+}
+
+// It's not safe to defined these yet. This must be done from p5js 'Setup'
+let truchetTop = null;
+let truchetBtm = null;
