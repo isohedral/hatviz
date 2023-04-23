@@ -12,7 +12,7 @@ let subst_button;
 let translate_button;
 let scale_button;
 let truchetCheckbox;
-let strokeCheckbox
+let strokeCheckbox;
 let draw_hats;
 let draw_super;
 let radio;
@@ -542,18 +542,18 @@ function setup() {
 
 	let count = 0;
 	for( let [name, col] of Object.entries( cp_info ) ) {
-	    const label = createSpan( name );
-	    label.position( 10 + 70*count, box_height );
-            const cp = createColorPicker( color( ...col ) );
-            cp.mousePressed( function() { loop() } );
-	    cp.position( 10 + 70*count, box_height + 20 );
-	    cols[name] = cp;
-	    
-	    ++count;
-	    if( count == 2 ) {
+		const label = createSpan( name );
+		label.position( 10 + 70*count, box_height );
+		const cp = createColorPicker( color( ...col ) );
+		cp.mousePressed( function() { loop() } );
+		cp.position( 10 + 70*count, box_height + 20 );
+		cols[name] = cp;
+		
+		++count;
+		if( count == 2 ) {
 		count = 0;
 		box_height += 50;
-	    }
+		}
 	}
 	if( count == 1 ) {
 		box_height += 50;
@@ -644,14 +644,14 @@ function setup() {
 
 function draw()
 {
-        background( cols["Plane"].color() );
+	background( cols["Plane"].color() );
 
 	push();
 	translate( width/2, height/2 );
 	const idx = {'H':0, 'T':1, 'P':2, 'F':3}[radio.value()];
 
 	if( isButtonActive( draw_hats ) ) {
-	    tiles[idx].draw( to_screen, level, truchetCheckbox.checked(), strokeCheckbox.checked() );
+		tiles[idx].draw( to_screen, level, truchetCheckbox.checked(), strokeCheckbox.checked() );
 	}
 
 	if( isButtonActive( draw_super ) ) {
