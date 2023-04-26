@@ -95,6 +95,8 @@ class HatTile
 	{
 		this.label = label;
 		this.svg_id = null;
+		this.svg_id_t1 = null;
+		this.svg_id_t2 = null;
 	}
     
 	draw( S, level, truchet, stroke )
@@ -114,17 +116,32 @@ class HatTile
 	resetSVG()
 	{
 		this.svg_id = null;
+		this.svg_id_t1 = null;
+		this.svg_id_t2 = null;
 	}
 
-	buildSVGDefs( stream, sc )
+	buildSVGDefs( stream, sc, truchet, stroke )
 	{
 		if( this.svg_id != null ) {
 			return;
 		}
 
 		this.svg_id = getSVGID();
-		stream.push( polygonToSVG( hat_outline, this.svg_id, 
-			cols[this.label].color(), black, lw_scale/sc ) );
+		// The half stroke avoids conflicts when rending truchet patterns atop non-stroked hats
+		const strokeWidth = stroke ? lw_scale / sc : 0.5 * lw_scale / sc;
+		const strokeColor = stroke ? black : cols[this.label].color();
+		stream.push(polygonToSVG(hat_outline, this.svg_id,
+			     cols[this.label].color(), strokeColor, strokeWidth));
+
+		if (truchet) {
+			const truchetStrokeColor = stroke ? black : cols["Truchet"].color();
+			this.svg_id_t1 = getSVGID();
+			this.svg_id_t2 = getSVGID();
+			stream.push(polygonToSVG(truchetTop, this.svg_id_t1,
+				cols["Truchet"].color(), truchetStrokeColor, strokeWidth));
+		    	stream.push(polygonToSVG(truchetBtm, this.svg_id_t2,
+				cols["Truchet"].color(), truchetStrokeColor, strokeWidth));
+		}
 	}
 
 	getSVGStrokeID()
@@ -135,6 +152,16 @@ class HatTile
 	getSVGFillID()
 	{
 		return this.svg_id;
+	}
+
+    	getSVGFillIDt1()
+	{
+		return this.svg_id_t1;
+	}
+
+    	getSVGFillIDt2()
+	{
+		return this.svg_id_t2;
 	}
 
 	getText( stream, T )
@@ -208,7 +235,7 @@ class MetaTile
 		this.svg_id = null;
 	}
 
-	buildSVGDefs( stream, sc )
+	buildSVGDefs( stream, sc, truchet, stroke )
 	{
 		if( this.svg_id != null ) {
 			return;
@@ -217,7 +244,7 @@ class MetaTile
 		this.svg_id = getSVGID();
 
 		for( let ch of this.children ) {
-			ch.geom.buildSVGDefs( stream, sc );
+			ch.geom.buildSVGDefs( stream, sc, truchet, stroke );
 		}
 
 		// Construct a fill group that must live at a logical lowest
@@ -227,7 +254,12 @@ class MetaTile
 		for( let ch of this.children ) {
 			const fid = ch.geom.getSVGFillID();
 			if( fid != null ) {
-				stream.push( getSVGInstance( fid, ch.T ) );
+			    stream.push( getSVGInstance( fid, ch.T ) );
+			    if ( truchetCheckbox.checked() && ch.geom instanceof HatTile)
+			    {
+				stream.push( getSVGInstance( ch.geom.getSVGFillIDt1(), ch.T ) );
+				stream.push( getSVGInstance( ch.geom.getSVGFillIDt2(), ch.T ) );
+			    }
 			}
 		}
 		stream.push( '  </g>' );
@@ -567,7 +599,6 @@ function setup() {
 	truchetCheckbox = createCheckbox('',false);
 	cols["Truchet"].size(32);
 	truchetCheckbox.position(cols["Truchet"].x +cols["Truchet"].width , cols["Truchet"].y-3);
-    
 
 	translate_button = addButton( "Translate", function() {
 		setButtonActive( translate_button, true );
@@ -614,7 +645,8 @@ function setup() {
 		stream.push( `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">` );
 		stream.push( '<defs>' );
 		for( let t of tiles ) {
-			t.buildSVGDefs( stream, mag( to_screen[0], to_screen[1] ) );
+			t.buildSVGDefs( stream, mag( to_screen[0], to_screen[1] ),
+				truchetCheckbox.checked(), strokeCheckbox.checked() );
 		}
 		stream.push( '</defs>' );
 
