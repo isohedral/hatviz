@@ -104,12 +104,12 @@ class HatTile
 
 	drawPolygon(
 	    // The half stroke avoids conflicts when rending truchet patterns atop non-stroked hats
-	    hat_outline, S, cols[this.label].color(), stroke? black: cols[this.label].color(), stroke? 1 : 0.5 );
+	    hat_outline, S, cols[this.label].color(), stroke? cols["Stroke"].color() : cols[this.label].color(), stroke? 1 : 0.5 );
 	if(truchet){
 		drawPolygon( 
-		    truchetTop, S, cols["Truchet"].color(), stroke? black : cols["Truchet"].color(), 1 );
+		    truchetTop, S, cols["Truchet"].color(), stroke? cols["Stroke"].color() : cols["Truchet"].color(), 1 );
 		drawPolygon( 
-		    truchetBtm, S, cols["Truchet"].color(), stroke? black : cols["Truchet"].color(), 1 );
+		    truchetBtm, S, cols["Truchet"].color(), stroke? cols["Stroke"].color() : cols["Truchet"].color(), 1 );
             }
 	}
 
@@ -129,12 +129,12 @@ class HatTile
 		this.svg_id = getSVGID();
 		// The half stroke avoids conflicts when rending truchet patterns atop non-stroked hats
 		const strokeWidth = stroke ? lw_scale / sc : 0.5 * lw_scale / sc;
-		const strokeColor = stroke ? black : cols[this.label].color();
+		const strokeColor = stroke ? cols["Stroke"].color() : cols[this.label].color();
 		stream.push(polygonToSVG(hat_outline, this.svg_id,
 			     cols[this.label].color(), strokeColor, strokeWidth));
 
 		if (truchet) {
-			const truchetStrokeColor = stroke ? black : cols["Truchet"].color();
+			const truchetStrokeColor = stroke ? cols["Stroke"].color() : cols["Truchet"].color();
 			this.svg_id_t1 = getSVGID();
 			this.svg_id_t2 = getSVGID();
 			stream.push(polygonToSVG(truchetTop, this.svg_id_t1,
