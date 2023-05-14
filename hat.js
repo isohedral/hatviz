@@ -320,7 +320,7 @@ const F_init = (function () {
 	const F_outline = [
 		pt( 0, 0 ), pt( 3, 0 ), 
 		pt( 3.5, hr3 ), pt( 3, 2 * hr3 ), pt( -1, 2 * hr3 ) ];
-	const meta = new MetaTile( F_outline, null, [0,0,0] );
+	const meta = new MetaTile( F_outline, null);
 	meta.width = 2;
 
 	meta.addChild( 
