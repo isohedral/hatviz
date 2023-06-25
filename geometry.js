@@ -86,7 +86,7 @@ function intersect( p1, q1, p2, q2 )
     const uA = ((q2.x - p2.x) * (p1.y - p2.y) - (q2.y - p2.y) * (p1.x - p2.x)) / d;
     const uB = ((q1.x - p1.x) * (p1.y - p2.y) - (q1.y - p1.y) * (p1.x - p2.x)) / d;
 
-    return pt( p1.x + uA * (q1.x - p1.x), p1.y + uA * (q1.y - p1.y) );
+    return pt( p1.x + uA * (q1.x - p1.x), p1.y + uB * (q1.y - p1.y) );
 }
 
 const hat_outline = [
